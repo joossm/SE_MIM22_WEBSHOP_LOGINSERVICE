@@ -1,0 +1,15 @@
+#  --------------------------------------------------------------------------------
+version: '3.8'
+services:
+  loginservice:
+    networks:
+      - bookstore
+    build: ./
+    container_name: loginservice
+    working_dir: /SE_MIM22_WEBSHOP_LOGINSERVICE
+    ports:
+      - "8441:8441"
+
+networks:
+  bookstore:
+    name: "bookstore"
