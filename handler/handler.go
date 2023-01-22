@@ -19,39 +19,51 @@ func Login(responseWriter http.ResponseWriter, request *http.Request) {
 			user := model.User{}
 			jsonErr := json.Unmarshal(body, &user)
 			if jsonErr != nil {
-				_, responseErr := responseWriter.Write([]byte("{ERROR}"))
+				js, err := json.Marshal("Error")
+				errorHandler(err)
+				_, responseErr := responseWriter.Write(js)
 				errorHandler(responseErr)
 				return
 			}
 			db := openDB()
 			defer closeDB(db)
-			result, err := db.Query("SELECT Id, Username, Password FROM users WHERE Username = ? AND Password = ?", user.Username, user.Password)
+			result, err := db.Query("SELECT * FROM users WHERE Username = ? AND Password = ?", user.Username, user.Password)
 			errorHandler(err)
 			var users []model.User
-			for result.Next() {
-				var user model.User
-				err = result.Scan(&user.Id, &user.Username, &user.Password)
-				errorHandler(err)
-				users = append(users, user)
+			if result != nil {
+				for result.Next() {
+					var user model.User
+					err = result.Scan(&user.Id, &user.Username, &user.Password, &user.Firstname, &user.Lastname, &user.HouseNumber, &user.Street, &user.ZipCode, &user.City, &user.Email, &user.Phone)
+					errorHandler(err)
+					users = append(users, user)
+				}
 			}
 			for _, iUser := range users {
 				fmt.Println(user.Username + " " + user.Password)
 				fmt.Println(iUser.Username + " " + iUser.Password)
 				if iUser.Username == user.Username && iUser.Password == user.Password {
-					_, responseErr := responseWriter.Write([]byte("{true}"))
+					js, err := json.Marshal(iUser)
+					errorHandler(err)
+					_, responseErr := responseWriter.Write(js)
 					errorHandler(responseErr)
 					return
 				}
 			}
-			_, responseErr := responseWriter.Write([]byte("{false}"))
+			js, err := json.Marshal("false")
+			errorHandler(err)
+			_, responseErr := responseWriter.Write(js)
 			errorHandler(responseErr)
 			return
 		}
-		_, responseErr := responseWriter.Write([]byte("{false}"))
+		js, err := json.Marshal("false")
+		errorHandler(err)
+		_, responseErr := responseWriter.Write(js)
 		errorHandler(responseErr)
 		return
 	default:
-		_, responseErr := responseWriter.Write([]byte("THIS IS A POST REQUEST"))
+		js, err := json.Marshal("THIS IS A POST REQUEST")
+		errorHandler(err)
+		_, responseErr := responseWriter.Write(js)
 		errorHandler(responseErr)
 		return
 	}
